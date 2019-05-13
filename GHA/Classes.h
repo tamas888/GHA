@@ -71,13 +71,26 @@ class Player : public Moving
 	Palya* palya;
 	//name
 	int id;
+	int health;
 public:
 	void jump() override;
-	Player(Palya* palya, int corX, int corY, double vx, double vy, int id);
+	Player(Palya* palya, int corX, int corY, double vx, double vy, int id, int health);
 	void update(sf::RenderWindow* window)override;
+	sf::Sprite getSprite()const { return sprite; }
+	void setHealth(const int damage) { health += damage; }
+	~Player();
 };
 
 class Status : public GameObject
 {
-	int dam
+	int damage;
+	sf::Texture texture;
+	sf::Sprite sprite;
+	bool letezik;
+	Player* players;
+public:
+	Status(Player* players, std::string minta, int damage, int x, int y);
+	void utkozik();
+	void update(sf::RenderWindow* window) override;
+	~Status();
 };

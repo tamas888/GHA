@@ -191,7 +191,7 @@ void Moving::move(/*T&*/ Palya * oth, sf::Sprite sp)
 //Player----------
 //----------------
 
-Player::Player(Palya * palya, int corX = (int)SCREENW / 2, int corY = (int)SCREENH / 2, double vX = 1, double vY = 1, int id = 0) :Moving(corX, corY, vX, vY)
+Player::Player(Palya * palya, int corX = (int)SCREENW / 2, int corY = (int)SCREENH / 2, double vX = 1, double vY = 1, int id = 0, int health = 100) :Moving(corX, corY, vX, vY), health(health)
 {
 	if (id < 0 || id>1);
 
@@ -242,6 +242,60 @@ void Player::update(sf::RenderWindow * window)
 	window->draw(sprite);
 }
 
+Player::~Player()
+{
+	delete palya;
+}
+
 //----------------
 //Status----------
 //----------------
+
+Status::Status(Player * players, std::string minta = "", int damage = 0, int x = SCREENW / 2, int y = SCREENH / 2) :GameObject(x, y), damage(damage), players(players)
+{
+	if (minta == "")
+		std::cout << "Error!" << std::endl;
+
+	if (!texture.loadFromFile(minta))
+	{
+		std::cerr << "Hiba a mintázat betöltésénél" << std::endl;
+	}
+
+	sprite.setTexture(texture);
+	sprite.setPosition(corX, corY);
+	sprite.setTextureRect(sf::IntRect(0, 0, 200, 200));
+	sprite.setScale(BLOCKSIZEW / 350.0, BLOCKSIZEH / 350.0);
+
+	letezik = true;
+}
+
+void Status::utkozik()
+{
+	if (!letezik)
+		return;
+	sf::FloatRect* rTmp = new sf::FloatRect[playerNum];
+	for (int i = 0; i < playerNum; i++) {
+		if (sprite.getGlobalBounds().intersects(players[i].getSprite().getGlobalBounds())) {
+			letezik = false;
+			players[i].setHealth(damage);
+			delete[] rTmp;
+			return;
+		}
+	}
+	delete[] rTmp;
+}
+
+void Status::update(sf::RenderWindow * window)
+{
+	utkozik();
+	if (letezik)
+	{
+		sprite.setPosition(corX, corY);
+		window->draw(sprite);
+	}
+}
+
+Status::~Status()
+{
+	delete players;
+}

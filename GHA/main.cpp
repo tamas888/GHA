@@ -21,7 +21,8 @@ int main()
 	std::ifstream test("Test.txt");
 
 	Palya palya1(test);
-	Player dino1(&palya1, 50, 50, 0, gravity, 0);
+	Player dino1(&palya1, 50, 50, 0, gravity, 0, 100);
+	Status juatlom(&dino1, "jutalom.png", 15, 200, 300);
 
 	while (window.isOpen())
 	{
@@ -33,6 +34,8 @@ int main()
 		palya1.updatePalya(&window);
 
 		dino1.update(&window);
+
+		juatlom.update(&window);
 
 		window.display();
 	}
