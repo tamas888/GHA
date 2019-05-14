@@ -18,13 +18,10 @@ const double gravity = 0.6;
 extern sf::Event event;
 extern sf::Color background;
 extern sf::RenderWindow window;
-
 extern int playerNum;
+extern std::string* nevek;
 
-struct coordinate
-{
-	int kezX, kezY, vegX, vegY;
-};
+const std::string fileUt = "Test.txt";
 
 //std::vector<coordinate> Fixcoords;
 

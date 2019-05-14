@@ -4,7 +4,17 @@
 //GameObject------
 //----------------
 
-GameObject::GameObject(int x = (int)SCREENW / 2, int y = (int)SCREENH / 2) : corX(x), corY(y) {/**/ }
+GameObject::GameObject()
+{
+	corX = SCREENW / 2;
+	corY = SCREENH / 2;
+}
+
+GameObject::GameObject(int x = (int)SCREENW / 2, int y = (int)SCREENH / 2)
+{
+	corX = x * BLOCKSIZEW + BLOCKSIZEW / 2;
+	corY = x * BLOCKSIZEH + BLOCKSIZEH / 2;
+}
 
 int GameObject::getX()const
 {
@@ -81,8 +91,6 @@ Palya::Palya(std::ifstream & terkep)
 
 	darab = 0;
 
-	//mintaUt = "wall.png";
-
 	while (!terkep.eof())
 	{
 		terkep >> tmp;
@@ -96,11 +104,10 @@ Palya::Palya(std::ifstream & terkep)
 		terkep >> std::ws;
 		i++;
 	}
-	delete[] Blocks;
 	Blocks = new Block[darab];
 	for (int i = 0; i < darab; i++)
 	{
-		Blocks[i].operator= (Block((poz.back() % BLOCKNUM) * BLOCKSIZEW, (poz.back() / BLOCKNUM) * BLOCKSIZEH, mintaUt));
+		Blocks[i].operator= (Block((poz.back() % BLOCKNUM), (poz.back() / BLOCKNUM), mintaUt));
 		poz.pop_back();
 	}
 }
@@ -115,7 +122,8 @@ void Palya::updatePalya(sf::RenderWindow * window)
 
 Palya::~Palya()
 {
-	delete[] Blocks;
+	if (Blocks != NULL)
+		delete Blocks;
 }
 
 //----------------
@@ -135,7 +143,7 @@ void Moving::setVelocityY(double y)
 	velocityY = y;
 }
 
-void Moving::move(/*T&*/ Palya * oth, sf::Sprite sp)
+void Moving::move(Palya * oth, sf::Sprite sp, bool ellen = false)
 {
 	bool volt = false;
 
@@ -180,7 +188,7 @@ void Moving::move(/*T&*/ Palya * oth, sf::Sprite sp)
 		if (corX + (int)(BLOCKNUM * velocityX) < SCREENW && corX + (int)(BLOCKNUM * velocityX) > 0)
 			corX += (int)(BLOCKNUM * velocityX);
 
-		if (corY + (int)BLOCKNUM * velocityY < SCREENH)
+		if (corY + (int)BLOCKNUM * velocityY < SCREENH && !ellen)
 			corY += (int)BLOCKNUM * velocityY;
 	}
 	while (corX + BLOCKSIZEW > SCREENW)
@@ -191,7 +199,11 @@ void Moving::move(/*T&*/ Palya * oth, sf::Sprite sp)
 //Player----------
 //----------------
 
-Player::Player(Palya * palya, int corX = (int)SCREENW / 2, int corY = (int)SCREENH / 2, double vX = 1, double vY = 1, int id = 0, int health = 100) :Moving(corX, corY, vX, vY), health(health)
+Player::Player() : GameObject(0, 0), Moving(NULL, NULL, NULL, NULL) {
+	palya = nullptr;
+}
+
+Player::Player(Palya * palya, int corX = (int)SCREENW / 2, int corY = (int)SCREENH / 2, double vX = 1, double vY = 1, int id = 0, int health = 100) : GameObject(corX, corY), Moving(corX, corY, vX, vY), health(health)
 {
 	if (id < 0 || id>1);
 
@@ -216,6 +228,11 @@ Player::Player(Palya * palya, int corX = (int)SCREENW / 2, int corY = (int)SCREE
 	sprite.setScale(BLOCKSIZEW / (double)texture.getSize().x * 0.9, BLOCKSIZEW / (double)texture.getSize().x * 0.9);
 }
 
+Player::Player(const Player & oth) : GameObject(oth.corX, oth.corY), Moving(NULL, NULL, NULL, NULL) {
+	palya = NULL;
+	*this = oth;
+}
+
 void Player::jump()
 {
 	bool volt = false;
@@ -237,7 +254,7 @@ void Player::jump()
 
 void Player::update(sf::RenderWindow * window)
 {
-	move(palya, sprite);
+	move(palya, sprite, false);
 	sprite.setPosition(corX, corY);
 	window->draw(sprite);
 }
@@ -298,4 +315,45 @@ void Status::update(sf::RenderWindow * window)
 Status::~Status()
 {
 	delete players;
+}
+
+//----------------
+//Enemy----------
+//----------------
+
+Enemy::Enemy(Palya * palya, Player * players, std::string minta, int damage, double vX, double vY, int x, int y)
+	:GameObject(x, y), Status(players, minta, damage, NULL, NULL), Moving(NULL, NULL, vY, vY)
+{
+	kezY = y;
+	vXhatar = vX;
+	setVelocityY(0.0);
+	this->palya = palya;
+	csokken = true;
+}
+
+void Enemy::moveLimit() {
+	if (csokken)
+	{
+		move(palya, sprite, true);
+		setVelocityX(getVX() - 0.1);
+		corY = kezY;
+		sprite.setPosition(corX, corY);
+		if (abs(getVX()) >= vXhatar)
+			csokken = false;
+	}
+	else
+	{
+		move(palya, sprite, true);
+		setVelocityX(getVX() + 0.1);
+		corY = kezY;
+		sprite.setPosition(corX, corY);
+		if (abs(getVX()) >= vXhatar)
+			csokken = true;
+	}
+}
+
+void Enemy::update(sf::RenderWindow * window)
+{
+	moveLimit();
+	window->draw(sprite);
 }

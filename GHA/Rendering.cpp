@@ -1,11 +1,6 @@
 #include"includes.h"
 #include "Classes.h"
 
-void setParameter()
-{
-	background = sf::Color::Color(0, 229, 225);
-}
-
 void eventCheck(sf::RenderWindow& window, Player& player)
 {
 	while (window.pollEvent(event))

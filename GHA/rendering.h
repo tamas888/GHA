@@ -8,5 +8,6 @@ extern class Player;
 
 void setParameter();
 void eventCheck(sf::RenderWindow& window, Player& player);
+void init();
 
 #endif
